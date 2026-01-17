@@ -255,8 +255,8 @@ services:
     restart: unless-stopped
     user: root
     volumes:
-      - ./filebeat_suricata.yml:/usr/share/filebeat/filebeat.yml
-      - ./suricata_logs:/var/log/suricata:ro
+      - ./filebeat_suricata.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./suricata/logs:/var/log/suricata:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - certs:/usr/share/filebeat/config/certs:ro

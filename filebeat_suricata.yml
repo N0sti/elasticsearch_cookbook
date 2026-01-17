@@ -1,24 +1,33 @@
 filebeat.inputs:
-- type: log
+- type: filestream
+  id: suricata-eve
   enabled: true
   paths:
   - /var/log/suricata/eve.json
-  json.keys_under_root: true
-  json.add_error_key: true
-  json.message_key: message
+  parsers:
+  - ndjson:
+      keys_under_root: true
+      add_error_key: true
+      message_key: message
   fields:
     log_type: suricata
   fields_under_root: false
+  # Désactiver les data streams pour cet input
+  data_stream:
+    enabled: false
 output.elasticsearch:
   hosts:
   - https://es01:9200
-  index: suricata-%{+yyyy.MM.dd}
+  index: "suricata-%{+yyyy.MM.dd}"
   username: elastic
   password: ${ELASTICSEARCH_PASSWORD}
   ssl:
     certificate_authorities:
     - /usr/share/filebeat/config/certs/ca/ca.crt
     verification_mode: certificate
+  # Désactiver les data streams pour utiliser des index normaux
+  data_stream:
+    enabled: false
 setup.template.name: suricata
 setup.template.pattern: suricata-*
 setup.template.settings:
