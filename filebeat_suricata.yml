@@ -1,0 +1,35 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+  - /var/log/suricata/eve.json
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message
+  fields:
+    log_type: suricata
+  fields_under_root: false
+output.elasticsearch:
+  hosts:
+  - https://es01:9200
+  index: suricata-%{+yyyy.MM.dd}
+  username: elastic
+  password: ${ELASTICSEARCH_PASSWORD}
+  ssl:
+    certificate_authorities:
+    - /usr/share/filebeat/config/certs/ca/ca.crt
+    verification_mode: certificate
+setup.template.name: suricata
+setup.template.pattern: suricata-*
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+processors:
+- timestamp:
+    field: timestamp
+    layouts:
+    - 2006-01-02T15:04:05.000000-0700
+    - '2006-01-02T15:04:05.000000Z'
+    - '2006-01-02T15:04:05Z'
+    test:
+    - '2024-01-15T10:30:45.123456Z'
