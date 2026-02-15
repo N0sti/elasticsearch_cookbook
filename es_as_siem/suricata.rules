@@ -1,0 +1,23 @@
+# Test basique
+alert http any any -> any any (msg:"HTTP Traffic"; sid:1000001; rev:1;)
+
+# SQL Injection
+alert http any any -> any any (msg:"SQL Injection"; content:"' OR '1'='1"; nocase; sid:1000002; rev:1;)
+
+# XSS
+alert http any any -> any any (msg:"XSS Attack"; content:"<script>"; nocase; sid:1000003; rev:1;)
+
+# User-Agent suspect
+alert http any any -> any any (msg:"SQLMap Tool"; content:"User-Agent: sqlmap"; nocase; sid:1000004; rev:1;)
+
+# Test IDS
+alert http any any -> any any (msg:"IDS Test"; content:"uid=0|28|root|29|"; sid:2100498; rev:7;)
+
+# Port Scan
+alert tcp any any -> any any (msg:"PORT SCAN DETECTED"; flags:S; threshold:type both, track by_src, count 10, seconds 10; sid:5000001; rev:1;)
+
+# HTTP Burst
+alert http any any -> any any (msg:"HTTP BURST DETECTED"; threshold:type both, track by_src, count 15, seconds 2; sid:5000002; rev:1;)
+
+# Brute Force
+alert http any any -> any any (msg:"BRUTE FORCE DETECTED"; content:"pass="; http_uri; threshold:type both, track by_src, count 6, seconds 10; sid:5000003; rev:1;)

@@ -242,7 +242,7 @@ services:
       - ./suricata/config:/etc/suricata
       - ./suricata/rules:/var/lib/suricata/rules
     environment:
-      - SURICATA_OPTIONS=-i eth0 -c /etc/suricata/suricata.yaml
+      - SURICATA_OPTIONS=-i -c /etc/suricata/suricata.yaml
     # Note: En production, vous devriez configurer une interface réseau spécifique
     # Pour ce TD, nous utiliserons des logs de test générés
 
