@@ -124,12 +124,13 @@ services:
     networks:
       - elastic
 
-  # Suricata - IDS/IPS
+
   suricata:
     image: jasonish/suricata:latest
     container_name: suricata
     restart: unless-stopped
-    network_mode: host  # Nécessaire pour capturer le trafic réseau
+    # ✅ CORRECTION: Utiliser le réseau bridge au lieu de host
+    # Cela permet de capturer le trafic entre conteneurs Docker
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -139,9 +140,16 @@ services:
       - ./suricata/config:/etc/suricata
       - ./suricata/rules:/var/lib/suricata/rules
     environment:
+      # ✅ CORRECTION: Spécifier l'interface réseau (eth0 dans le conteneur)
       - SURICATA_OPTIONS=-i eth0 -c /etc/suricata/suricata.yaml
-    # Note: En production, vous devriez configurer une interface réseau spécifique
-    # Pour ce TD, nous utiliserons des logs de test générés
+    networks:
+      - elastic
+    # ✅ AJOUT: Healthcheck pour vérifier que Suricata fonctionne
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep suricata || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Filebeat - Collecteur de logs
   filebeat:
