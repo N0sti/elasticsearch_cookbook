@@ -97,11 +97,7 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
+      test: ["CMD-SHELL", "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -140,11 +136,7 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
+      test: ["CMD-SHELL", "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -183,11 +175,7 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
+      test: ["CMD-SHELL", "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -216,11 +204,7 @@ services:
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
     mem_limit: ${MEM_LIMIT}
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
-        ]
+      test: ["CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'"]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -242,9 +226,34 @@ services:
       - ./suricata/config:/etc/suricata
       - ./suricata/rules:/var/lib/suricata/rules
     environment:
-      - SURICATA_OPTIONS=-i -c /etc/suricata/suricata.yaml
+      - SURICATA_OPTIONS=-i ${NETWORK_INTERFACE:-wlan0} -c /etc/suricata/suricata.yaml
     # Note: En production, vous devriez configurer une interface réseau spécifique
     # Pour ce TD, nous utiliserons des logs de test générés
+
+  # Wazuh Manager - HIDS / File Integrity / Host monitoring
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.9.2
+    container_name: wazuh-manager
+    hostname: wazuh-manager
+    restart: unless-stopped
+    ports:
+      - "1514:1514"   # Agents Wazuh (UDP/TCP)
+      - "55000:55000" # Wazuh REST API
+    volumes:
+      - certs:/etc/ssl/elasticstack:ro
+      - /var/log:/var/log/host:ro
+      - wazuh_data:/var/ossec
+    environment:
+      - INDEXER_URL=https://es01:9200
+      - INDEXER_USERNAME=elastic
+      - INDEXER_PASSWORD=${ELASTIC_PASSWORD}
+      - FILEBEAT_SSL_VERIFICATION_MODE=certificate
+      - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/elasticstack/ca/ca.crt
+    depends_on:
+      es01:
+        condition: service_healthy
+    networks:
+      - elastic
 
   # Filebeat - Collecteur de logs
   filebeat:
@@ -283,6 +292,8 @@ volumes:
   esdata03:
     driver: local
   kibanadata:
+    driver: local
+  wazuh_data:
     driver: local
 
 networks:
